@@ -4,6 +4,8 @@ import (
 	"errors"
 	"os"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -14,12 +16,25 @@ type Config struct {
 }
 
 func LoadFromEnv() Config {
-	return Config{
-		BaseURL:     strings.TrimSpace(os.Getenv("MEMOS_URL")),
-		APIKey:      strings.TrimSpace(os.Getenv("MEMOS_API_KEY")),
-		AdminAPIKey: strings.TrimSpace(os.Getenv("MEMOS_ADMIN_API_KEY")),
-		DefaultTag:  strings.TrimSpace(os.Getenv("DEFAULT_TAG")),
+	dotenvValues, err := godotenv.Read()
+	if err != nil {
+		dotenvValues = map[string]string{}
 	}
+
+	return Config{
+		BaseURL:     loadValue("MEMOS_URL", dotenvValues),
+		APIKey:      loadValue("MEMOS_API_KEY", dotenvValues),
+		AdminAPIKey: loadValue("MEMOS_ADMIN_API_KEY", dotenvValues),
+		DefaultTag:  loadValue("DEFAULT_TAG", dotenvValues),
+	}
+}
+
+func loadValue(key string, dotenvValues map[string]string) string {
+	if value := strings.TrimSpace(os.Getenv(key)); value != "" {
+		return value
+	}
+
+	return strings.TrimSpace(dotenvValues[key])
 }
 
 func (c Config) Validate() error {
