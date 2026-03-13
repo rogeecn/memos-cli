@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -19,7 +20,9 @@ type Client struct {
 }
 
 type ListMemosParams struct {
-	Filter string
+	Filter    string
+	PageSize  int
+	PageToken string
 }
 
 type UpdateMemoPayload struct {
@@ -31,6 +34,7 @@ type Memo struct {
 	Name       string `json:"name"`
 	Content    string `json:"content"`
 	Visibility string `json:"visibility,omitempty"`
+	CreateTime string `json:"createTime,omitempty"`
 }
 
 type MemoPayload struct {
@@ -39,7 +43,8 @@ type MemoPayload struct {
 }
 
 type ListMemosResponse struct {
-	Memos []Memo `json:"memos"`
+	Memos         []Memo `json:"memos"`
+	NextPageToken string `json:"nextPageToken,omitempty"`
 }
 
 type ListUsersResponse struct {
@@ -59,6 +64,12 @@ func (c *Client) ListMemos(params ListMemosParams) (ListMemosResponse, error) {
 	query := url.Values{}
 	if params.Filter != "" {
 		query.Set("filter", params.Filter)
+	}
+	if params.PageSize > 0 {
+		query.Set("pageSize", strconv.Itoa(params.PageSize))
+	}
+	if params.PageToken != "" {
+		query.Set("pageToken", params.PageToken)
 	}
 
 	var response ListMemosResponse

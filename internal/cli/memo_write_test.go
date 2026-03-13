@@ -35,8 +35,8 @@ func TestMemoCreateAppendsDefaultTag(t *testing.T) {
 		t.Fatalf("expected memo create to succeed, got %v", err)
 	}
 
-	if !bytes.Contains(buf.Bytes(), []byte("memos/123")) {
-		t.Fatalf("expected create output to contain memo name, got %s", buf.String())
+	if !bytes.Contains(buf.Bytes(), []byte("> 123")) {
+		t.Fatalf("expected create output to contain formatted memo id, got %s", buf.String())
 	}
 }
 

@@ -229,6 +229,7 @@ go run ./cmd/memos --help
 
 - `memos config check`
 - `memos memo list`
+- `memos memo list --page-size <n> --page-token <token>`
 - `memos memo get <memo-id>`
 - `memos memo create <content>`
 - `memos memo update <memo-id> --content "..."`
@@ -250,6 +251,12 @@ go run ./cmd/memos memo list
 ```bash
 MEMOS_URL=http://localhost:5230 \
 MEMOS_API_KEY=your-api-key \
+go run ./cmd/memos memo list --page-size 20 --page-token cursor-2
+```
+
+```bash
+MEMOS_URL=http://localhost:5230 \
+MEMOS_API_KEY=your-api-key \
 DEFAULT_TAG=cli \
 go run ./cmd/memos memo create "开始迁移到 Go CLI"
 ```
@@ -258,7 +265,7 @@ go run ./cmd/memos memo create "开始迁移到 Go CLI"
 
 - `memo-id` 支持传纯 ID，例如 `abc123`
 - 评论和标签命令会自动规范化为 `memos/<id>` 路径
-- 当前支持全局 `--json` 输出原始结构化结果
+- 当前支持全局 `--json` 输出原始结构化结果，`memo list` 的 JSON 响应会包含 `nextPageToken`
 - `stdin`、`--edit` 仍在后续迭代中
 
 ## 开发说明

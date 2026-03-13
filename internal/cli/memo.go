@@ -14,7 +14,9 @@ func newMemoCommand() *cobra.Command {
 		Short: "Read and manage memos",
 	}
 
-	cmd.AddCommand(&cobra.Command{
+	var pageSize int
+	var pageToken string
+	listCmd := &cobra.Command{
 		Use:   "list",
 		Short: "List memos",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -22,16 +24,29 @@ func newMemoCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			response, err := client.ListMemos(memos.ListMemosParams{})
+			response, err := client.ListMemos(memos.ListMemosParams{
+				PageSize:  pageSize,
+				PageToken: pageToken,
+			})
 			if err != nil {
 				return err
 			}
 			if getCommandContext(cmd.Context()).jsonOutput {
 				return output.WriteJSON(cmd.OutOrStdout(), response)
 			}
-			return output.WriteMemoList(cmd.OutOrStdout(), response.Memos)
+			if err := output.WriteMemoList(cmd.OutOrStdout(), response.Memos); err != nil {
+				return err
+			}
+			if response.NextPageToken != "" {
+				_, err := fmt.Fprintf(cmd.OutOrStdout(), "Next page token: %s\n", response.NextPageToken)
+				return err
+			}
+			return nil
 		},
-	})
+	}
+	listCmd.Flags().IntVar(&pageSize, "page-size", 0, "Number of memos per page")
+	listCmd.Flags().StringVar(&pageToken, "page-token", "", "Pagination token for the next page")
+	cmd.AddCommand(listCmd)
 
 	cmd.AddCommand(&cobra.Command{
 		Use:   "get <memo-id>",
