@@ -1,1 +1,22 @@
 .env
+
+# Go build artifacts
+/bin/
+/dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace files
+cover.out
+coverage.out
+
+# Editor and OS files
+.DS_Store
+.idea/
+.vscode/
+*.log
