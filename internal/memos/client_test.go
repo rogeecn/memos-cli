@@ -81,3 +81,76 @@ func TestCreateCommentUsesMemoNamePath(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 }
+
+func TestCreateAttachmentUsesAttachmentPath(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/attachments" {
+			t.Fatalf("expected attachment path, got %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPost {
+			t.Fatalf("expected POST, got %s", r.Method)
+		}
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		if got := payload["filename"]; got != "pic.png" {
+			t.Fatalf("expected filename pic.png, got %#v", got)
+		}
+		if got := payload["type"]; got != "image/png" {
+			t.Fatalf("expected type image/png, got %#v", got)
+		}
+		if got := payload["memo"]; got != "memos/123" {
+			t.Fatalf("expected memo memos/123, got %#v", got)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"name": "attachments/att-1", "filename": "pic.png", "type": "image/png", "memo": "memos/123"})
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "token-123", "")
+	attachment, err := client.CreateAttachment(Attachment{Filename: "pic.png", Content: []byte("png"), Type: "image/png", Memo: "memos/123"})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if attachment.Name != "attachments/att-1" {
+		t.Fatalf("expected attachment name, got %q", attachment.Name)
+	}
+}
+
+func TestSetMemoAttachmentsUsesMemoAttachmentPath(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/memos/123/attachments" {
+			t.Fatalf("expected memo attachments path, got %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPatch {
+			t.Fatalf("expected PATCH, got %s", r.Method)
+		}
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		if got := payload["name"]; got != "memos/123" {
+			t.Fatalf("expected name memos/123, got %#v", got)
+		}
+		attachments, ok := payload["attachments"].([]any)
+		if !ok || len(attachments) != 1 {
+			t.Fatalf("expected one attachment, got %#v", payload["attachments"])
+		}
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{}`))
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "token-123", "")
+	err := client.SetMemoAttachments("123", SetMemoAttachmentsPayload{
+		Name: "memos/123",
+		Attachments: []Attachment{{
+			Name:     "attachments/att-1",
+			Filename: "pic.png",
+			Type:     "image/png",
+		}},
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}

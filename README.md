@@ -123,6 +123,8 @@ memos filter --expr "visibility == 'PRIVATE'"
 memos memo create <content>
 memos memo create <content> --visibility PUBLIC
 memos memo create <content> --tag release --tag cli
+memos memo create "旅行记录" --image cover.png
+memos memo create "相册更新" --image a.jpg --image b.jpg
 memos memo update <memo-id> --content "updated content"
 memos memo update <memo-id> --visibility PUBLIC
 memos memo delete <memo-id> --yes

@@ -37,9 +37,25 @@ type Memo struct {
 	CreateTime string `json:"createTime,omitempty"`
 }
 
+type Attachment struct {
+	Name         string `json:"name,omitempty"`
+	CreateTime   string `json:"createTime,omitempty"`
+	Filename     string `json:"filename,omitempty"`
+	Content      []byte `json:"content,omitempty"`
+	ExternalLink string `json:"externalLink,omitempty"`
+	Type         string `json:"type,omitempty"`
+	Size         string `json:"size,omitempty"`
+	Memo         string `json:"memo,omitempty"`
+}
+
 type MemoPayload struct {
 	Content    string `json:"content"`
 	Visibility string `json:"visibility,omitempty"`
+}
+
+type SetMemoAttachmentsPayload struct {
+	Name        string       `json:"name"`
+	Attachments []Attachment `json:"attachments"`
 }
 
 type ListMemosResponse struct {
@@ -97,6 +113,16 @@ func (c *Client) CreateMemo(payload MemoPayload) (Memo, error) {
 	var response Memo
 	err := c.doJSON(http.MethodPost, "/api/v1/memos", nil, payload, c.apiKey, &response)
 	return response, err
+}
+
+func (c *Client) CreateAttachment(payload Attachment) (Attachment, error) {
+	var response Attachment
+	err := c.doJSON(http.MethodPost, "/api/v1/attachments", nil, payload, c.apiKey, &response)
+	return response, err
+}
+
+func (c *Client) SetMemoAttachments(memoID string, payload SetMemoAttachmentsPayload) error {
+	return c.doJSON(http.MethodPatch, "/api/v1/"+normalizeMemoName(memoID)+"/attachments", nil, payload, c.apiKey, nil)
 }
 
 func (c *Client) UpdateMemo(memoID string, payload UpdateMemoPayload) (Memo, error) {
